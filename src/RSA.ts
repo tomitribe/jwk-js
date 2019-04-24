@@ -1,6 +1,10 @@
+import crypto from "crypto";
+export const webCrypto = typeof window === "object" && (window.crypto || window['msCrypto']);
+export const webCryptoSubtle = webCrypto && (webCrypto.subtle || webCrypto['webkitSubtle'] || webCrypto['Subtle']);
+
 import { ASN1 } from "./asn1";
 import { PEM } from "./PEM";
-import { AB2s, ILLEGAL_ARGUMENT, s2bu, tryPromise } from "./util";
+import { AB2s, b2bu, bu2b, bu2s, ILLEGAL_ARGUMENT, s2AB, s2b, s2bu, tryPromise } from "./util";
 
 export class RSA {
     static ASN1fromPEM(body: ArrayBuffer | Uint8Array): any {
@@ -82,6 +86,108 @@ export class RSA {
             const pem: PEM = new PEM(secret);
             return RSA.JWKfromASN1(RSA.ASN1fromPEM(pem.body), type, extra)
         })
+    }
+
+    static createSigner(name: string): any {
+        if (webCryptoSubtle) {
+            return {
+                update: function (thing: string): any {
+                    return {
+                        sign: async function (secret: string, encoding: string): Promise<any> {
+                            return RSA.JWKfromRSA(secret, 'private', {
+                                key_ops: ['sign'],
+                                alg: name.replace('SHA-', 'RS')
+                            }).then(async keyData => {
+                                return webCryptoSubtle.importKey(
+                                    'jwk',
+                                    keyData,
+                                    { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } },
+                                    true,
+                                    ['sign']
+                                ).then(async key => {
+                                    return webCryptoSubtle.sign(
+                                        { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } },
+                                        key,
+                                        s2AB(thing)
+                                    ).then(AB2s).then(s2b)
+                                })
+                            });
+                        }
+                    }
+                }
+            }
+        } else {
+            if (crypto && crypto.createSign) {
+                return crypto.createSign(name.replace('SHA-', 'RSA-SHA'))
+            } else {
+                throw new Error(ILLEGAL_ARGUMENT);
+            }
+        }
+    }
+
+    static sign(bits: number) {
+        return async function sign(thing: string, privateKey: string): Promise<string> {
+            return tryPromise(() => {
+                return RSA.createSigner('SHA-' + bits)
+                    .then(res => res
+                        .update(thing)
+                        .sign(privateKey, 'base64')
+                        .then(b2bu)
+                    );
+            });
+        }
+    }
+
+    static createVerifier(name: string): any {
+        if (webCryptoSubtle) {
+            return {
+                update: function (thing: string): any {
+                    return {
+                        verify: async function (secret: string, signature: string, encoding: string): Promise<boolean> {
+                            return RSA.JWKfromRSA(secret, 'public', {
+                                key_ops: ['verify'],
+                                alg: name.replace('SHA-', 'RS')
+                            }).then(async ({ kty, n, e }) => {
+                                return webCryptoSubtle.importKey(
+                                    'jwk',
+                                    { kty, n, e },
+                                    { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } },
+                                    false,
+                                    ['verify']
+                                ).then(key => {
+                                    return webCryptoSubtle.verify(
+                                        'RSASSA-PKCS1-v1_5',
+                                        key,
+                                        s2AB(bu2s(signature)),
+                                        s2AB(thing)
+                                    )
+                                })
+                            });
+                        }
+                    }
+                }
+            }
+        } else {
+            if (crypto && crypto.createVerify) {
+                return crypto.createVerify(name.replace('SHA-', 'RSA-SHA'))
+            } else {
+                throw new Error(ILLEGAL_ARGUMENT);
+            }
+        }
+    }
+
+    static verify(bits: number) {
+        return async function verify(thing: string, signature: string, publicKey: string): Promise<boolean> {
+            try {
+                return await RSA.createVerifier('SHA-' + bits)
+                    .then(res => res
+                        .update(thing)
+                        .verify(publicKey, bu2b(signature), 'base64')
+                    );
+            } catch (e) {
+                return Promise.reject(new Error(e.message));
+            }
+        }
     }
 }
 

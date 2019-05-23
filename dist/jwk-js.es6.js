@@ -817,6 +817,45 @@ function __awaiter(thisArg, _arguments, P, generator) {
 
 const webCrypto = typeof window === "object" && (window.crypto || window['msCrypto']);
 const webCryptoSubtle = webCrypto && (webCrypto.subtle || webCrypto['webkitSubtle'] || webCrypto['Subtle']);
+class HMAC {
+    static createSigner(name, secret) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (webCryptoSubtle) {
+                const keyData = s2AB(secret);
+                return webCryptoSubtle.importKey('raw', keyData, { name: 'HMAC', hash: { name: name } }, true, ['sign']).then(key => {
+                    return {
+                        update: function (thing) {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                return webCryptoSubtle.sign('HMAC', key, s2AB(thing));
+                            });
+                        }
+                    };
+                });
+            }
+            else {
+                return !!crypto && crypto.createHmac ? Promise.resolve(crypto.createHmac(name.replace('SHA-', 'sha'), secret)) : Promise.reject(webCrypto);
+            }
+        });
+    }
+    static sign(bits) {
+        return function sign(thing, secret) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const hmac = yield HMAC.createSigner('SHA-' + bits, secret);
+                return Promise.resolve(webCryptoSubtle ? s2bu(AB2s(hmac && (yield hmac.update(thing)))) : b2bu(hmac && hmac.update(thing).digest('base64')));
+            });
+        };
+    }
+    static verify(bits) {
+        return function verify(thing, signature, secret) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return (yield HMAC.sign(bits)(thing, secret)) === signature;
+            });
+        };
+    }
+}
+
+const webCrypto$1 = typeof window === "object" && (window.crypto || window['msCrypto']);
+const webCryptoSubtle$1 = webCrypto$1 && (webCrypto$1.subtle || webCrypto$1['webkitSubtle'] || webCrypto$1['Subtle']);
 class RSA {
     static ASN1fromPEM(body) {
         if (!body)
@@ -889,7 +928,7 @@ class RSA {
         });
     }
     static createSigner(name) {
-        if (webCryptoSubtle) {
+        if (webCryptoSubtle$1) {
             return {
                 update: function (thing) {
                     return {
@@ -899,8 +938,8 @@ class RSA {
                                     key_ops: ['sign'],
                                     alg: name.replace('SHA-', 'RS')
                                 }).then((keyData) => __awaiter(this, void 0, void 0, function* () {
-                                    return webCryptoSubtle.importKey('jwk', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, true, ['sign']).then((key) => __awaiter(this, void 0, void 0, function* () {
-                                        return webCryptoSubtle.sign({ name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, key, s2AB(thing)).then(AB2s).then(s2b);
+                                    return webCryptoSubtle$1.importKey('jwk', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, true, ['sign']).then((key) => __awaiter(this, void 0, void 0, function* () {
+                                        return webCryptoSubtle$1.sign({ name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, key, s2AB(thing)).then(AB2s).then(s2b);
                                     }));
                                 }));
                             });
@@ -932,7 +971,7 @@ class RSA {
         };
     }
     static createVerifier(name) {
-        if (webCryptoSubtle) {
+        if (webCryptoSubtle$1) {
             return {
                 update: function (thing) {
                     return {
@@ -942,8 +981,8 @@ class RSA {
                                     key_ops: ['verify'],
                                     alg: name.replace('SHA-', 'RS')
                                 }).then(({ kty, n, e }) => __awaiter(this, void 0, void 0, function* () {
-                                    return webCryptoSubtle.importKey('jwk', { kty, n, e }, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, false, ['verify']).then(key => {
-                                        return webCryptoSubtle.verify('RSASSA-PKCS1-v1_5', key, s2AB(bu2s(signature)), s2AB(thing));
+                                    return webCryptoSubtle$1.importKey('jwk', { kty, n, e }, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, false, ['verify']).then(key => {
+                                        return webCryptoSubtle$1.verify('RSASSA-PKCS1-v1_5', key, s2AB(bu2s(signature)), s2AB(thing));
                                     });
                                 }));
                             });
@@ -978,44 +1017,28 @@ class RSA {
     }
 }
 
-const webCrypto$1 = typeof window === "object" && (window.crypto || window['msCrypto']);
-const webCryptoSubtle$1 = webCrypto$1 && (webCrypto$1.subtle || webCrypto$1['webkitSubtle'] || webCrypto$1['Subtle']);
-class HMAC {
-    static createSigner(name, secret) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (webCryptoSubtle$1) {
-                const keyData = s2AB(secret);
-                return webCryptoSubtle$1.importKey('raw', keyData, { name: 'HMAC', hash: { name: name } }, true, ['sign']).then(key => {
-                    return {
-                        update: function (thing) {
-                            return __awaiter(this, void 0, void 0, function* () {
-                                return webCryptoSubtle$1.sign('HMAC', key, s2AB(thing));
-                            });
-                        }
-                    };
-                });
-            }
-            else {
-                return !!crypto && crypto.createHmac ? Promise.resolve(crypto.createHmac(name.replace('SHA-', 'sha'), secret)) : Promise.reject(webCrypto$1);
-            }
-        });
-    }
-    static sign(bits) {
-        return function sign(thing, secret) {
-            return __awaiter(this, void 0, void 0, function* () {
-                const hmac = yield HMAC.createSigner('SHA-' + bits, secret);
-                return Promise.resolve(webCryptoSubtle$1 ? s2bu(AB2s(hmac && (yield hmac.update(thing)))) : b2bu(hmac && hmac.update(thing).digest('base64')));
-            });
-        };
-    }
-    static verify(bits) {
-        return function verify(thing, signature, secret) {
-            return __awaiter(this, void 0, void 0, function* () {
-                return (yield HMAC.sign(bits)(thing, secret)) === signature;
-            });
-        };
-    }
-}
+var index = {
+    ASN1,
+    EC,
+    PEM,
+    RSA,
+    HMAC,
+    ILLEGAL_ARGUMENT,
+    UNSUPPORTED_ALGORITHM,
+    tryPromise,
+    AB2hex,
+    AB2s,
+    b2bu,
+    b2s,
+    bu2b,
+    bu2s,
+    cleanZeros,
+    hex2AB,
+    num2hex,
+    s2AB,
+    s2b,
+    s2bu
+};
 
-export { ASN1, EC, PEM, RSA, HMAC, ILLEGAL_ARGUMENT, UNSUPPORTED_ALGORITHM, tryPromise, AB2hex, AB2s, b2bu, b2s, bu2b, bu2s, cleanZeros, hex2AB, num2hex, s2AB, s2b, s2bu };
+export default index;
 //# sourceMappingURL=jwk-js.es6.js.map

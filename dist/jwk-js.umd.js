@@ -1,8 +1,8 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('crypto')) :
     typeof define === 'function' && define.amd ? define(['exports', 'crypto'], factory) :
-    (factory((global.jwkJs = {}),null));
-}(this, (function (exports,crypto) { 'use strict';
+    (global = global || self, factory(global.jwkJs = {}, global.crypto));
+}(this, function (exports, crypto) { 'use strict';
 
     crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
 
@@ -834,6 +834,82 @@
 
     var webCrypto = typeof window === "object" && (window.crypto || window['msCrypto']);
     var webCryptoSubtle = webCrypto && (webCrypto.subtle || webCrypto['webkitSubtle'] || webCrypto['Subtle']);
+    var HMAC = /** @class */ (function () {
+        function HMAC() {
+        }
+        HMAC.createSigner = function (name, secret) {
+            return __awaiter(this, void 0, void 0, function () {
+                var keyData;
+                return __generator(this, function (_a) {
+                    if (webCryptoSubtle) {
+                        keyData = s2AB(secret);
+                        return [2 /*return*/, webCryptoSubtle.importKey('raw', keyData, { name: 'HMAC', hash: { name: name } }, true, ['sign']).then(function (key) {
+                                return {
+                                    update: function (thing) {
+                                        return __awaiter(this, void 0, void 0, function () {
+                                            return __generator(this, function (_a) {
+                                                return [2 /*return*/, webCryptoSubtle.sign('HMAC', key, s2AB(thing))];
+                                            });
+                                        });
+                                    }
+                                };
+                            })];
+                    }
+                    else {
+                        return [2 /*return*/, !!crypto && crypto.createHmac ? Promise.resolve(crypto.createHmac(name.replace('SHA-', 'sha'), secret)) : Promise.reject(webCrypto)];
+                    }
+                    return [2 /*return*/];
+                });
+            });
+        };
+        HMAC.sign = function (bits) {
+            return function sign(thing, secret) {
+                return __awaiter(this, void 0, void 0, function () {
+                    var hmac, _a, _b, _c, _d, _e, _f;
+                    return __generator(this, function (_g) {
+                        switch (_g.label) {
+                            case 0: return [4 /*yield*/, HMAC.createSigner('SHA-' + bits, secret)];
+                            case 1:
+                                hmac = _g.sent();
+                                _b = (_a = Promise).resolve;
+                                if (!webCryptoSubtle) return [3 /*break*/, 4];
+                                _d = s2bu;
+                                _e = AB2s;
+                                _f = hmac;
+                                if (!_f) return [3 /*break*/, 3];
+                                return [4 /*yield*/, hmac.update(thing)];
+                            case 2:
+                                _f = (_g.sent());
+                                _g.label = 3;
+                            case 3:
+                                _c = _d.apply(void 0, [_e.apply(void 0, [_f])]);
+                                return [3 /*break*/, 5];
+                            case 4:
+                                _c = b2bu(hmac && hmac.update(thing).digest('base64'));
+                                _g.label = 5;
+                            case 5: return [2 /*return*/, _b.apply(_a, [_c])];
+                        }
+                    });
+                });
+            };
+        };
+        HMAC.verify = function (bits) {
+            return function verify(thing, signature, secret) {
+                return __awaiter(this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, HMAC.sign(bits)(thing, secret)];
+                            case 1: return [2 /*return*/, (_a.sent()) === signature];
+                        }
+                    });
+                });
+            };
+        };
+        return HMAC;
+    }());
+
+    var webCrypto$1 = typeof window === "object" && (window.crypto || window['msCrypto']);
+    var webCryptoSubtle$1 = webCrypto$1 && (webCrypto$1.subtle || webCrypto$1['webkitSubtle'] || webCrypto$1['Subtle']);
     var RSA = /** @class */ (function () {
         function RSA() {
         }
@@ -908,7 +984,7 @@
             });
         };
         RSA.createSigner = function (name) {
-            if (webCryptoSubtle) {
+            if (webCryptoSubtle$1) {
                 return {
                     update: function (thing) {
                         return {
@@ -922,9 +998,9 @@
                                             }).then(function (keyData) { return __awaiter(_this, void 0, void 0, function () {
                                                 var _this = this;
                                                 return __generator(this, function (_a) {
-                                                    return [2 /*return*/, webCryptoSubtle.importKey('jwk', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, true, ['sign']).then(function (key) { return __awaiter(_this, void 0, void 0, function () {
+                                                    return [2 /*return*/, webCryptoSubtle$1.importKey('jwk', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, true, ['sign']).then(function (key) { return __awaiter(_this, void 0, void 0, function () {
                                                             return __generator(this, function (_a) {
-                                                                return [2 /*return*/, webCryptoSubtle.sign({ name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, key, s2AB(thing)).then(AB2s).then(s2b)];
+                                                                return [2 /*return*/, webCryptoSubtle$1.sign({ name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, key, s2AB(thing)).then(AB2s).then(s2b)];
                                                             });
                                                         }); })];
                                                 });
@@ -961,7 +1037,7 @@
             };
         };
         RSA.createVerifier = function (name) {
-            if (webCryptoSubtle) {
+            if (webCryptoSubtle$1) {
                 return {
                     update: function (thing) {
                         return {
@@ -976,8 +1052,8 @@
                                                 var kty = _a.kty, n = _a.n, e = _a.e;
                                                 return __awaiter(_this, void 0, void 0, function () {
                                                     return __generator(this, function (_b) {
-                                                        return [2 /*return*/, webCryptoSubtle.importKey('jwk', { kty: kty, n: n, e: e }, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, false, ['verify']).then(function (key) {
-                                                                return webCryptoSubtle.verify('RSASSA-PKCS1-v1_5', key, s2AB(bu2s(signature)), s2AB(thing));
+                                                        return [2 /*return*/, webCryptoSubtle$1.importKey('jwk', { kty: kty, n: n, e: e }, { name: 'RSASSA-PKCS1-v1_5', hash: { name: name } }, false, ['verify']).then(function (key) {
+                                                                return webCryptoSubtle$1.verify('RSASSA-PKCS1-v1_5', key, s2AB(bu2s(signature)), s2AB(thing));
                                                             })];
                                                     });
                                                 });
@@ -1023,104 +1099,32 @@
         return RSA;
     }());
 
-    var webCrypto$1 = typeof window === "object" && (window.crypto || window['msCrypto']);
-    var webCryptoSubtle$1 = webCrypto$1 && (webCrypto$1.subtle || webCrypto$1['webkitSubtle'] || webCrypto$1['Subtle']);
-    var HMAC = /** @class */ (function () {
-        function HMAC() {
-        }
-        HMAC.createSigner = function (name, secret) {
-            return __awaiter(this, void 0, void 0, function () {
-                var keyData;
-                return __generator(this, function (_a) {
-                    if (webCryptoSubtle$1) {
-                        keyData = s2AB(secret);
-                        return [2 /*return*/, webCryptoSubtle$1.importKey('raw', keyData, { name: 'HMAC', hash: { name: name } }, true, ['sign']).then(function (key) {
-                                return {
-                                    update: function (thing) {
-                                        return __awaiter(this, void 0, void 0, function () {
-                                            return __generator(this, function (_a) {
-                                                return [2 /*return*/, webCryptoSubtle$1.sign('HMAC', key, s2AB(thing))];
-                                            });
-                                        });
-                                    }
-                                };
-                            })];
-                    }
-                    else {
-                        return [2 /*return*/, !!crypto && crypto.createHmac ? Promise.resolve(crypto.createHmac(name.replace('SHA-', 'sha'), secret)) : Promise.reject(webCrypto$1)];
-                    }
-                    return [2 /*return*/];
-                });
-            });
-        };
-        HMAC.sign = function (bits) {
-            return function sign(thing, secret) {
-                return __awaiter(this, void 0, void 0, function () {
-                    var hmac, _a, _b, _c, _d, _e, _f;
-                    return __generator(this, function (_g) {
-                        switch (_g.label) {
-                            case 0: return [4 /*yield*/, HMAC.createSigner('SHA-' + bits, secret)];
-                            case 1:
-                                hmac = _g.sent();
-                                _b = (_a = Promise).resolve;
-                                if (!webCryptoSubtle$1) return [3 /*break*/, 4];
-                                _d = s2bu;
-                                _e = AB2s;
-                                _f = hmac;
-                                if (!_f) return [3 /*break*/, 3];
-                                return [4 /*yield*/, hmac.update(thing)];
-                            case 2:
-                                _f = (_g.sent());
-                                _g.label = 3;
-                            case 3:
-                                _c = _d.apply(void 0, [_e.apply(void 0, [_f])]);
-                                return [3 /*break*/, 5];
-                            case 4:
-                                _c = b2bu(hmac && hmac.update(thing).digest('base64'));
-                                _g.label = 5;
-                            case 5: return [2 /*return*/, _b.apply(_a, [_c])];
-                        }
-                    });
-                });
-            };
-        };
-        HMAC.verify = function (bits) {
-            return function verify(thing, signature, secret) {
-                return __awaiter(this, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, HMAC.sign(bits)(thing, secret)];
-                            case 1: return [2 /*return*/, (_a.sent()) === signature];
-                        }
-                    });
-                });
-            };
-        };
-        return HMAC;
-    }());
+    var index = {
+        ASN1: ASN1,
+        EC: EC,
+        PEM: PEM,
+        RSA: RSA,
+        HMAC: HMAC,
+        ILLEGAL_ARGUMENT: ILLEGAL_ARGUMENT,
+        UNSUPPORTED_ALGORITHM: UNSUPPORTED_ALGORITHM,
+        tryPromise: tryPromise,
+        AB2hex: AB2hex,
+        AB2s: AB2s,
+        b2bu: b2bu,
+        b2s: b2s,
+        bu2b: bu2b,
+        bu2s: bu2s,
+        cleanZeros: cleanZeros,
+        hex2AB: hex2AB,
+        num2hex: num2hex,
+        s2AB: s2AB,
+        s2b: s2b,
+        s2bu: s2bu
+    };
 
-    exports.ASN1 = ASN1;
-    exports.EC = EC;
-    exports.PEM = PEM;
-    exports.RSA = RSA;
-    exports.HMAC = HMAC;
-    exports.ILLEGAL_ARGUMENT = ILLEGAL_ARGUMENT;
-    exports.UNSUPPORTED_ALGORITHM = UNSUPPORTED_ALGORITHM;
-    exports.tryPromise = tryPromise;
-    exports.AB2hex = AB2hex;
-    exports.AB2s = AB2s;
-    exports.b2bu = b2bu;
-    exports.b2s = b2s;
-    exports.bu2b = bu2b;
-    exports.bu2s = bu2s;
-    exports.cleanZeros = cleanZeros;
-    exports.hex2AB = hex2AB;
-    exports.num2hex = num2hex;
-    exports.s2AB = s2AB;
-    exports.s2b = s2b;
-    exports.s2bu = s2bu;
+    exports.default = index;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=jwk-js.umd.js.map

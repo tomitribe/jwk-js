@@ -1,6 +1,6 @@
 {
   "name": "jwk-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "keywords": [],
   "main": "dist/jwk-js.umd.js",
@@ -24,7 +24,7 @@
   "scripts": {
     "prebuild": "rimraf dist && rimraf compiled",
     "build": "rollup -c",
-    "postbuild": "npm run docs",
+    "//postbuild": "npm run docs",
     "predocs": "rimraf docs",
     "docs": "typedoc --out docs --target es6 --theme markdown --mode file src/jwk-js.ts",
     "dev": "rollup -c -w",
@@ -74,14 +74,9 @@
       }
     }
   },
-  "dependencies": {
-    "pako": "1.0.6",
-    "ts-tomitribe-util": "0.0.1"
-  },
   "devDependencies": {
     "@types/jest": "^23.0.2",
     "@types/node": "^10.3.2",
-    "@types/pako": "^1.0.0",
     "babel-register": "^6.26.0",
     "browserify-sign": "^4.0.4",
     "create-hash": "^1.2.0",
@@ -105,7 +100,7 @@
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-config-standard": "^7.0.0",
-    "typedoc": "^0.11.1",
+    "typedoc": "^0.14.2",
     "typedoc-plugin-markdown": "^1.1.13",
     "typescript": "^2.9.1"
   }

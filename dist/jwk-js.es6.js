@@ -1017,7 +1017,7 @@ class RSA {
     }
 }
 
-var index = {
+const jwkJs = {
     ASN1,
     EC,
     PEM,
@@ -1040,6 +1040,6 @@ var index = {
     s2bu
 };
 
-export default index;
-export { AB2hex, AB2s, ASN1, EC, HMAC, ILLEGAL_ARGUMENT, PEM, RSA, UNSUPPORTED_ALGORITHM, b2bu, b2s, bu2b, bu2s, cleanZeros, hex2AB, num2hex, s2AB, s2b, s2bu, tryPromise };
+export default jwkJs;
+export { jwkJs };
 //# sourceMappingURL=jwk-js.es6.js.map

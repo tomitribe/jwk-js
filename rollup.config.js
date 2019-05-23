@@ -105,7 +105,7 @@ const browserConfig = Object.assign({}, baseConfig, {
         sourcemap: false,
         globals: {'crypto': 'crypto'}
     },
-    plugins: [json(), typescript({useTsconfigDeclarationDir: true}), resolve({browser: true}), commonjs(), terser()]
+    plugins: [json(), typescript({useTsconfigDeclarationDir: true}), resolve({browser: true}), terser()]
 });
 
 const packedConfig = Object.assign({}, baseConfig, {

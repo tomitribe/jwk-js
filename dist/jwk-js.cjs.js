@@ -1099,7 +1099,7 @@ var RSA = /** @class */ (function () {
     return RSA;
 }());
 
-var index = {
+var jwkJs = {
     ASN1: ASN1,
     EC: EC,
     PEM: PEM,
@@ -1122,25 +1122,6 @@ var index = {
     s2bu: s2bu
 };
 
-exports.AB2hex = AB2hex;
-exports.AB2s = AB2s;
-exports.ASN1 = ASN1;
-exports.EC = EC;
-exports.HMAC = HMAC;
-exports.ILLEGAL_ARGUMENT = ILLEGAL_ARGUMENT;
-exports.PEM = PEM;
-exports.RSA = RSA;
-exports.UNSUPPORTED_ALGORITHM = UNSUPPORTED_ALGORITHM;
-exports.b2bu = b2bu;
-exports.b2s = b2s;
-exports.bu2b = bu2b;
-exports.bu2s = bu2s;
-exports.cleanZeros = cleanZeros;
-exports.default = index;
-exports.hex2AB = hex2AB;
-exports.num2hex = num2hex;
-exports.s2AB = s2AB;
-exports.s2b = s2b;
-exports.s2bu = s2bu;
-exports.tryPromise = tryPromise;
+exports.default = jwkJs;
+exports.jwkJs = jwkJs;
 //# sourceMappingURL=jwk-js.cjs.js.map

@@ -1017,5 +1017,5 @@ class HMAC {
     }
 }
 
-export { ASN1, EC, PEM, RSA, HMAC, UNSUPPORTED_ALGORITHM, ILLEGAL_ARGUMENT, num2hex, cleanZeros, hex2AB, AB2hex, tryPromise, s2AB, AB2s, b2s, b2bu, bu2b, bu2s, s2b, s2bu };
+export { ASN1, EC, PEM, RSA, HMAC, ILLEGAL_ARGUMENT, UNSUPPORTED_ALGORITHM, tryPromise, AB2hex, AB2s, b2bu, b2s, bu2b, bu2s, cleanZeros, hex2AB, num2hex, s2AB, s2b, s2bu };
 //# sourceMappingURL=jwk-js.es6.js.map
